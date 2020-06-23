@@ -13,7 +13,8 @@ const input = ( props ) => {
           <td>{data.country}</td>
           <td>{data.email}</td>
           <td>{data.gender}</td>
-          <td>{data.check}</td>  
+          {data.check===true?<td>checked</td>:<tb>unchecked</tb>}
+          {console.log(data.check)}
         </tr>
        )
    })
@@ -25,7 +26,6 @@ const input = ( props ) => {
           <th>message</th>
           <th>zipcode</th>
           <th>country</th>
-         
           <th>email</th>
           <th>gender</th>
           <th>check status </th>

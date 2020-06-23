@@ -40,18 +40,25 @@ class Register extends Component {
   };
 
   handleGenderChange = ( event ) => {
-    console.log(event.target)
+   // console.log(event.target)
       this.setState({
-        ...this.state.data,
-        [event.target.name]:event.target.value
-      })
+        ...this.state,
+        data:{ 
+          ...this.state.data,
+          [event.target.name]:event.target.value
+         }
+        
+      } )
   }
   handlecheck = (event) =>{
-    console.log(event)
     this.setState({
-      ...this.state.data,
-      [event.target.name]:true
-    })
+      ...this.state,
+      data:{ 
+        ...this.state.data,
+        [event.target.name]:true
+       }
+      
+    } )
   }
 
   validate = () => {
@@ -158,7 +165,7 @@ class Register extends Component {
             type="radio"
             name="gender"
             invalid={errors.gender ? true : false}
-            checked={this.state.gender === "male"} 
+            checked={this.state.data.gender === "male"} 
             onChange={this.handleGenderChange}
           />
           <Label for="gender">female</Label>  
@@ -167,7 +174,7 @@ class Register extends Component {
             value="female"
             type="radio"
             name="gender"
-            checked={this.state.gender === "female"}
+            checked={this.state.data.gender === "female"}
             invalid={errors.gender ? true : false}
             onChange={this.handleGenderChange}
           />
@@ -193,10 +200,12 @@ class Register extends Component {
           <Input 
           name="check"
           value ="checked"
+          invalid={errors.check ? true : false}
           onChange={this.handlecheck}
           type="checkbox" />{' '}
           Check me out
         </Label>
+        <FormFeedback>{errors.check}</FormFeedback>
         </FormGroup>
         <Button onClick={this.props.editCancel}>
           CANCEL
