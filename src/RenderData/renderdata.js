@@ -5,7 +5,6 @@ const input = ( props ) => {
    const formdata = props.showdata.map((data) => {
      console.log(data)
        return(
-         
         <tr>
           <td>{data.fullName}</td>
           <td>{data.message}</td>
@@ -13,7 +12,8 @@ const input = ( props ) => {
           <td>{data.country}</td>
           <td>{data.email}</td>
           <td>{data.gender}</td>
-          {data.check===true?<td>checked</td>:<tb>unchecked</tb>}
+          {data.check===true?<td>checked</td>:<tb>unchecked</tb>} 
+          
           {console.log(data.check)}
         </tr>
        )

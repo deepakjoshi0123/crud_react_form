@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import RenderForm from './RenderData/renderdata'
-import { Button, Form, Input, Label, FormGroup, FormFeedback } from "reactstrap";
+import { Button, Form, Input, Label, FormGroup, FormFeedback  } from "reactstrap";
 import { isEmail } from "validator";
 
 let UserList = []
@@ -62,9 +62,11 @@ class Register extends Component {
   }
 
   validate = () => {
+    console.log("inside validate")
     const { data } = this.state;
     let errors = {};
 
+    if (data.check === false) errors.check = "please check agreement";
     if (data.fullName === "") errors.fullName = "Enter Name";
     if (!isEmail(data.email)) errors.email = "Email must be valid.";
     if (data.email === "") errors.email = "Enter Email";
@@ -72,15 +74,16 @@ class Register extends Component {
     if (data.message === "") errors.message = "Add Message";
     if (data.gender === "") errors.gender = "Select Gender";
     if (data.country === "") errors.country = "Select Country";
-    if (data.check === false) errors.check = "please check agreement";
+    
+    console.log("see errors ", errors)
     return errors;
+   
   };
   // if editing of values is accepted then valid the user form 
   acceptPostUserHandler = event => {
     event.preventDefault();
     const errors = this.validate();
-    console.log(this.state)
-
+    
     if (Object.keys(errors).length === 0) {
       const user = {
         fullName: this.state.data.fullName,
@@ -95,7 +98,6 @@ class Register extends Component {
       UserList.push(user)
 
       this.setState({userList:UserList})
-      console.log(this.state.userList)
     } else {
       this.setState({ errors });
     }
@@ -103,13 +105,14 @@ class Register extends Component {
 
   render() {
     const { data, errors } = this.state;
+    console.log("hello " , errors.fullName,errors.check)
     return (
        <div> 
        
       <Form>
         <FormGroup>
           <Label for="fullName">Full Name</Label>
-          <Input
+          <Input 
             id="fullName"
             value={data.fullName}
             invalid={errors.fullName ? true : false}
@@ -157,9 +160,11 @@ class Register extends Component {
           <FormFeedback>{errors.message}</FormFeedback>
         </FormGroup>
 
+  
         <FormGroup>
         <Label for="gender">gender</Label>  
-          <Input
+       
+          <Input 
             id="gender"
             value="male"
             type="radio"
@@ -180,10 +185,10 @@ class Register extends Component {
           />
           <FormFeedback>{errors.gender}</FormFeedback>
         </FormGroup>
-
-        <FormGroup>
+  
+        <FormGroup class="dropdown">
           <Label for="country">Select Country</Label>
-          <select
+          <select class="form-control"
             type="select"
             name="country"
             id="country"
@@ -197,13 +202,20 @@ class Register extends Component {
         
         <FormGroup check>
         <Label check>
+        <div class="input-group mb-6">
+        <div class="input-group-prepend">
+        <div class="input-group-text">
           <Input 
           name="check"
           value ="checked"
           invalid={errors.check ? true : false}
           onChange={this.handlecheck}
-          type="checkbox" />{' '}
-          Check me out
+          type="checkbox" />{' '} 
+           Check me out
+          </div>
+          </div>
+          </div>
+        
         </Label>
         <FormFeedback>{errors.check}</FormFeedback>
         </FormGroup>
@@ -211,14 +223,15 @@ class Register extends Component {
           CANCEL
         </Button> 
         <Button
+         
           onClick={this.acceptPostUserHandler}
         >
           DONE 
         </Button>
-      </Form>
-      <RenderForm
+        </Form>
+       <RenderForm
                showdata={this.state.userList}
-              />    
+              />     
       </div>
     );
   } 
