@@ -1,22 +1,58 @@
 import React, { Component } from "react";
 import RenderForm from './RenderData/renderdata'
-import { Button, Form, Input, Label, FormGroup, FormFeedback  } from "reactstrap";
 import { isEmail } from "validator";
+import axios from 'axios';
+import Modal from './Modal/modal'
+import FormUI from './formUI/formUI'
 
-let UserList = []
-
+//let UserList = []
+let updId ;
 class Register extends Component {
   constructor(props) {
     super(props);
     this.state = this.getInitialState();
   }
 
+  componentDidMount(){
+    axios.get('http://localhost:3000/showall')
+    .then(res=>{
+      console.log(res.data.users)
+      this.setState({userList : res.data.users })
+    })
+  }
+
+  editUser = (Id)=>{
+    
+    updId=Id;
+    axios.get('http://localhost:3000/search',{params:{id:Id}})
+    .then(res=>{
+      console.log("from server " , res.data.user[0])
+      this.setState({data : res.data.user[0] }) 
+      console.log("from state" , this.state.data) 
+      
+    })   
+    let modal = this.state.mdopn   
+    this.setState({mdopn:!modal}) 
+
+  }
+
+  delUser(Id){
+    console.log(Id)
+     axios.delete('http://localhost:3000/del',{params:{id:Id}})
+     .then(res=>{
+      let updusr = this.state.userList.filter(user => user.id !== Id  )
+      this.setState({userList:updusr})
+     })
+  }
+
   getInitialState = () => ({
+    
+    mdopn:false,
     userList :[], 
     data: {
-      fullName: "",
+      fullname: "",
       email: "",
-      zipCode: "",
+      zipcode: "",
       message: "",
       country: "India",
       check: false,
@@ -51,13 +87,13 @@ class Register extends Component {
       } )
   }
   handlecheck = (event) =>{
+   // console.log(this.state.mdopn)
     this.setState({
       ...this.state,
       data:{ 
         ...this.state.data,
         [event.target.name]:true
-       }
-      
+       }   
     } )
   }
 
@@ -67,171 +103,129 @@ class Register extends Component {
     let errors = {};
 
     if (data.check === false) errors.check = "please check agreement";
-    if (data.fullName === "") errors.fullName = "Enter Name";
+    if (data.fullname === "") errors.fullname = "Enter Name";
     if (!isEmail(data.email)) errors.email = "Email must be valid.";
     if (data.email === "") errors.email = "Enter Email";
-    if (data.zipCode === "") errors.zipCode = "Enter ZipCode";
+    if (data.zipcode === "") errors.zipcode = "Enter ZipCode";
     if (data.message === "") errors.message = "Add Message";
     if (data.gender === "") errors.gender = "Select Gender";
     if (data.country === "") errors.country = "Select Country";
     
-    console.log("see errors ", errors)
     return errors;
    
   };
+  modalClose=()=>{
+    let md=this.state.mdopn
+    this.setState({mdopn:!md})
+  }
+
   // if editing of values is accepted then valid the user form 
-  acceptPostUserHandler = event => {
+ // left with only
+
+  compare(obj){
+    if(true)
+      { return true; } 
+    else 
+       {return false; }    
+}
+
+  update = (event )  => {
+    this.modalClose();
+    event.preventDefault();
+    const errors = this.validate();
+    console.log("golbal id ",updId)
+    if (Object.keys(errors).length === 0) {
+      const user = {
+        id:updId,
+        fullname: this.state.data.fullname,
+        email: this.state.data.email,
+        zipcode: this.state.data.zipcode,
+        message: this.state.data.message,
+        country: this.state.data.country,
+        check: this.state.data.check,
+        gender:this.state.data.gender
+      };  
+     // console.log(user)
+      axios.post('http://localhost:3000/update',user)
+      .then( res=> {
+        let resusr = this.state.userList.filter(user =>  user.id !== updId  ) //rest users
+        let updusr = this.state.userList.filter(user =>  user.id === updId  ) // user to be upd
+        updusr.fullname = this.state.data.fullname;
+        updusr.email = this.state.data.email;
+        updusr.zipcode = this.state.data.zipcode;
+        updusr.message = this.state.data.message;
+        updusr.country = this.state.data.country;
+        updusr.check = this.state.data.check;
+        updusr.gender = this.state.data.gender
+
+        resusr.push(updusr);
+       // resusr.sort(this.compare);
+        this.setState({userList:resusr});
+      })
+      
+
+    } else {
+      this.setState({ errors });
+    }
+  };
+
+
+  acceptPostUserHandler = (event)  => {
     event.preventDefault();
     const errors = this.validate();
     
     if (Object.keys(errors).length === 0) {
       const user = {
-        fullName: this.state.data.fullName,
+        fullname: this.state.data.fullname,
         email: this.state.data.email,
-        zipCode: this.state.data.zipCode,
+        zipcode: this.state.data.zipcode,
         message: this.state.data.message,
         country: this.state.data.country,
         check: this.state.data.check,
         gender:this.state.data.gender
       };
-    
-      UserList.push(user)
+  
+     // console.log(user)
+      axios.post('http://localhost:3000/create',user)
+      .then(res=>{
+        console.log(res)
+      })
 
-      this.setState({userList:UserList})
     } else {
       this.setState({ errors });
     }
   };
 
   render() {
-    const { data, errors } = this.state;
-    console.log("hello " , errors.fullName,errors.check)
+  
     return (
-       <div> 
-       
-      <Form>
-        <FormGroup>
-          <Label for="fullName">Full Name</Label>
-          <Input 
-            id="fullName"
-            value={data.fullName}
-            invalid={errors.fullName ? true : false}
-            name="fullName"
-            onChange={this.handleChange}
-          />
-          <FormFeedback>{errors.fullName}</FormFeedback>
-        </FormGroup>
-
-        <FormGroup>
-          <Label for="email">Email</Label>
-          <Input
-            id="email"
-            value={data.email}
-            invalid={errors.email ? true : false}
-            name="email"
-            onChange={this.handleChange}
-          />
-          <FormFeedback>{errors.email}</FormFeedback>
-        </FormGroup>
-
-        <FormGroup>
-          <Label for="text">ZipCode</Label>
-          <Input
-            id="zipCode"
-            value={data.zipCode}
-            type="text"
-            name="zipCode"
-            invalid={errors.zipCode ? true : false}
-            onChange={this.handleChange}
-          />
-          <FormFeedback>{errors.zipCode}</FormFeedback>
-        </FormGroup>
-
-        <FormGroup>
-          <Label for="message">Message</Label>
-          <Input
-            id="message"
-            value={data.message}
-            type="textarea"
-            name="message"
-            invalid={errors.message ? true : false}
-            onChange={this.handleChange}
-          />
-          <FormFeedback>{errors.message}</FormFeedback>
-        </FormGroup>
-
-  
-        <FormGroup>
-        <Label for="gender">gender</Label>  
-       
-          <Input 
-            id="gender"
-            value="male"
-            type="radio"
-            name="gender"
-            invalid={errors.gender ? true : false}
-            checked={this.state.data.gender === "male"} 
-            onChange={this.handleGenderChange}
-          />
-          <Label for="gender">female</Label>  
-          <Input
-            id="gender"
-            value="female"
-            type="radio"
-            name="gender"
-            checked={this.state.data.gender === "female"}
-            invalid={errors.gender ? true : false}
-            onChange={this.handleGenderChange}
-          />
-          <FormFeedback>{errors.gender}</FormFeedback>
-        </FormGroup>
-  
-        <FormGroup class="dropdown">
-          <Label for="country">Select Country</Label>
-          <select class="form-control"
-            type="select"
-            name="country"
-            id="country"
-            value={data.country}
-            onChange={this.handleChange}
-          >
-            <option>India</option>
-            <option>Germany</option>
-          </select>
-        </FormGroup>
-        
-        <FormGroup check>
-        <Label check>
-        <div class="input-group mb-6">
-        <div class="input-group-prepend">
-        <div class="input-group-text">
-          <Input 
-          name="check"
-          value ="checked"
-          invalid={errors.check ? true : false}
-          onChange={this.handlecheck}
-          type="checkbox" />{' '} 
-           Check me out
-          </div>
-          </div>
-          </div>
-        
-        </Label>
-        <FormFeedback>{errors.check}</FormFeedback>
-        </FormGroup>
-        <Button onClick={this.props.editCancel}>
-          CANCEL
-        </Button> 
-        <Button
+      <div> 
+         {this.state.mdopn===true?<Modal 
+         mdopen={this.modalClose}
+         show={this.state.mdopn} 
+         data={this.state.data}
+         errors={this.state.errors}
+         handleChange={this.handleChange}
+         handleGenderChange={this.handleGenderChange}
+         handlecheck={this.handlecheck}
+         acceptPostUserHandler={this.update}
+         />:null}
          
-          onClick={this.acceptPostUserHandler}
-        >
-          DONE 
-        </Button>
-        </Form>
-       <RenderForm
+       <div class="container-sm">    
+       <FormUI
+      data={this.state.data}
+      errors={this.state.errors}
+      handleChange={this.handleChange}
+      handleGenderChange={this.handleGenderChange}
+      handlecheck={this.handlecheck}
+      acceptPostUserHandler={this.acceptPostUserHandler}
+      />
+      <RenderForm
                showdata={this.state.userList}
-              />     
+               del={this.delUser}
+               edit={this.editUser}
+              />
+      </div>
       </div>
     );
   } 
