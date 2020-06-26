@@ -103,7 +103,6 @@ const FormUi = ( props ) => {
       <Input 
       name="check"
       value ={props.check}
-      invalid={props.errors.check ? true : false}
       onChange={props.handlecheck}
       type="checkbox" />{' '} 
        Check me out

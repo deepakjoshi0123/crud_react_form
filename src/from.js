@@ -2,8 +2,9 @@ import React, { Component } from "react";
 import RenderForm from './RenderData/renderdata'
 import { isEmail } from "validator";
 import axios from 'axios';
-import Modal from './Modal/modal'
-import FormUI from './formUI/formUI'
+import Modal from './Modal/modal';
+import FormUI from './formUI/formUI';
+import Page from './pagination/pagination'
 
 //let UserList = []
 let updId ;
@@ -20,13 +21,35 @@ class Register extends Component {
       this.setState({userList : res.data.users })
     })
   }
+  compare = (a, b) => {
+       
+    const usr1 = a.id;
+    const usr2 = b.id;
+  
+    let comparison = 0;
+    if (usr1 > usr2) {
+      comparison = 1;
+    } else if (usr1 < usr2) {
+      comparison = -1;
+    }
+    return comparison;
+  }
+ 
+  pageleft=()=>{
+    if(this.state.data.start===0)
+     return ;
+     this.setState({start:this.state.start-3 , end : this.state.end-3})
+  }
+  pageright=()=>{
+    this.setState({start:this.state.start+3 , end : this.state.end+3})
+  }
 
   editUser = (Id)=>{
     
     updId=Id;
     axios.get('http://localhost:3000/search',{params:{id:Id}})
     .then(res=>{
-      console.log("from server " , res.data.user[0])
+      
       this.setState({data : res.data.user[0] }) 
       console.log("from state" , this.state.data) 
       
@@ -36,7 +59,7 @@ class Register extends Component {
 
   }
 
-  delUser(Id){
+  delUser=(Id)=>{
     console.log(Id)
      axios.delete('http://localhost:3000/del',{params:{id:Id}})
      .then(res=>{
@@ -46,16 +69,20 @@ class Register extends Component {
   }
 
   getInitialState = () => ({
-    
+    //pagination
+    start:0,
+    end:10,
+
     mdopn:false,
     userList :[], 
     data: {
+      id:0,
       fullname: "",
       email: "",
       zipcode: "",
       message: "",
       country: "India",
-      check: false,
+      check: 0,
       gender:"",
     },
     errors: {},
@@ -102,7 +129,6 @@ class Register extends Component {
     const { data } = this.state;
     let errors = {};
 
-    if (data.check === false) errors.check = "please check agreement";
     if (data.fullname === "") errors.fullname = "Enter Name";
     if (!isEmail(data.email)) errors.email = "Email must be valid.";
     if (data.email === "") errors.email = "Enter Email";
@@ -150,6 +176,7 @@ class Register extends Component {
       .then( res=> {
         let resusr = this.state.userList.filter(user =>  user.id !== updId  ) //rest users
         let updusr = this.state.userList.filter(user =>  user.id === updId  ) // user to be upd
+        updusr.id=this.state.data.id;
         updusr.fullname = this.state.data.fullname;
         updusr.email = this.state.data.email;
         updusr.zipcode = this.state.data.zipcode;
@@ -159,7 +186,9 @@ class Register extends Component {
         updusr.gender = this.state.data.gender
 
         resusr.push(updusr);
-       // resusr.sort(this.compare);
+        resusr.sort(this.compare);
+        console.log(resusr);
+       // this.state = this.getInitialState();
         this.setState({userList:resusr});
       })
       
@@ -188,7 +217,10 @@ class Register extends Component {
      // console.log(user)
       axios.post('http://localhost:3000/create',user)
       .then(res=>{
-        console.log(res)
+        let usr=this.state.userList;
+        usr.push(user)
+        this.setState({userList:usr});
+        
       })
 
     } else {
@@ -225,6 +257,7 @@ class Register extends Component {
                del={this.delUser}
                edit={this.editUser}
               />
+      <Page/> 
       </div>
       </div>
     );
